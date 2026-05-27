@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team PAC-Men — Summer of AI</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Syne:wght@700;800&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #080810;
+    --surface: #0d0d1a;
+    --card:    #10101e;
+    --border:  #1e1e3a;
+    --text:    #e0e0ff;
+    --muted:   #6666aa;
+    --yellow:  #f5e642;
+    --cyan:    #00f5ff;
+    --magenta: #ff2d78;
+    --green:   #39ff14;
+    --radius:  4px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* scanline overlay */
+  body::after {
+    content: '';
+    position: fixed; inset: 0; z-index: 9999;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--yellow); }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 200;
+    background: rgba(8,8,16,0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--yellow);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.9rem 2.5rem;
+    box-shadow: 0 2px 30px rgba(245,230,66,0.08);
+  }
+  .nav-logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem; font-weight: 900;
+    color: var(--yellow);
+    text-shadow: 0 0 12px rgba(245,230,66,0.6);
+    letter-spacing: 0.1em;
+  }
+  .nav-logo span { color: var(--cyan); text-shadow: 0 0 12px rgba(0,245,255,0.6); }
+  .nav-links { display: flex; gap: 1.8rem; list-style: none; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none;
+    font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+    transition: color 0.15s, text-shadow 0.15s;
+  }
+  .nav-links a:hover { color: var(--cyan); text-shadow: 0 0 8px rgba(0,245,255,0.5); }
+
+  /* LAYOUT */
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 2rem; }
+  section { padding: 5rem 0; }
+  section + section { border-top: 1px solid var(--border); }
+
+  /* SECTION LABEL */
+  .label {
+    font-size: 0.68rem; font-weight: 600; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--yellow);
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 8px rgba(245,230,66,0.4);
+  }
+  .label::before { content: '> '; color: var(--cyan); }
+  .section-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.6rem; font-weight: 900;
+    color: var(--text); margin-bottom: 2.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* HERO */
+  #home { padding: 6rem 0 5rem; border-top: none; position: relative; }
+  .hero-grid-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      linear-gradient(rgba(0,245,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,245,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  #home .container { position: relative; z-index: 1; }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--cyan);
+    background: rgba(0,245,255,0.06);
+    border: 1px solid rgba(0,245,255,0.3);
+    padding: 0.3rem 0.9rem; border-radius: 2px;
+    margin-bottom: 2rem;
+  }
+  .hero-badge::before {
+    content: ''; width: 6px; height: 6px;
+    background: var(--cyan); border-radius: 50%;
+    box-shadow: 0 0 6px var(--cyan);
+    animation: blink 1.4s infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  .hero-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    font-weight: 900; line-height: 1.08;
+    letter-spacing: 0.02em; margin-bottom: 1.2rem;
+    color: var(--text);
+  }
+  .hero-title .hl {
+    color: var(--yellow);
+    text-shadow: 0 0 20px rgba(245,230,66,0.5), 0 0 40px rgba(245,230,66,0.2);
+    display: inline-block;
+    animation: glitch 5s infinite;
+  }
+  @keyframes glitch {
+    0%,94%,100% { transform: none; text-shadow: 0 0 20px rgba(245,230,66,0.5); }
+    95% { transform: translate(-2px, 1px); text-shadow: -2px 0 var(--magenta), 2px 0 var(--cyan); }
+    96% { transform: translate(2px, -1px); text-shadow: 2px 0 var(--cyan), -2px 0 var(--magenta); }
+    97% { transform: none; }
+  }
+
+  .hero-sub {
+    max-width: 540px; color: var(--muted);
+    font-size: 0.88rem; line-height: 1.85; margin-bottom: 2rem;
+  }
+  .hero-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 3rem; }
+  .tag {
+    font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.25rem 0.7rem;
+    background: rgba(245,230,66,0.05);
+    border: 1px solid rgba(245,230,66,0.2);
+    border-radius: 2px; color: var(--yellow);
+    transition: background 0.2s, box-shadow 0.2s;
+  }
+  .tag:hover { background: rgba(245,230,66,0.1); box-shadow: 0 0 10px rgba(245,230,66,0.2); }
+
+  .hero-stats { display: flex; gap: 3rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+  .stat-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2rem; font-weight: 900;
+    color: var(--cyan);
+    text-shadow: 0 0 14px rgba(0,245,255,0.5);
+  }
+  .stat-lbl { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.1rem; }
+
+  /* CARDS BASE */
+  .card, .meta-item, .member-card, .skills-wrap, .goal-card, .style-card, .oss-card, .project-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    position: relative;
+  }
+  .card::before, .member-card::before, .goal-card::before, .project-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--yellow), transparent);
+    opacity: 0.4;
+  }
+
+  /* IDENTITY */
+  .identity-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 1.2rem; }
+  .card { padding: 1.8rem; }
+  .card h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem; font-weight: 900;
+    color: var(--yellow); margin-bottom: 0.9rem;
+    letter-spacing: 0.05em;
+  }
+  .card p { color: var(--muted); font-size: 0.82rem; line-height: 1.85; }
+  .card p + p { margin-top: 0.8rem; }
+  .card strong { color: var(--cyan); }
+
+  .fun-fact {
+    margin-top: 1.2rem;
+    background: rgba(0,245,255,0.04);
+    border: 1px solid rgba(0,245,255,0.15);
+    border-radius: 2px; padding: 0.9rem 1.1rem;
+    font-size: 0.78rem; color: var(--muted);
+    display: flex; gap: 0.6rem;
+  }
+
+  .meta-stack { display: flex; flex-direction: column; gap: 0.7rem; }
+  .meta-item { padding: 0.9rem 1.2rem; transition: border-color 0.2s; }
+  .meta-item:hover { border-color: var(--yellow); }
+  .meta-item .lbl { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.25rem; }
+  .meta-item .val { font-size: 0.86rem; color: var(--yellow); }
+
+  /* TEAM */
+  .members-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.2rem; }
+  .member-card { padding: 1.5rem; display: flex; flex-direction: column; transition: border-color 0.2s, box-shadow 0.2s; }
+  .c1:hover { border-color: var(--yellow); box-shadow: 0 0 20px rgba(245,230,66,0.08); }
+  .c2:hover { border-color: var(--magenta); box-shadow: 0 0 20px rgba(255,45,120,0.08); }
+  .c3:hover { border-color: var(--cyan); box-shadow: 0 0 20px rgba(0,245,255,0.08); }
+
+  .avatar-wrap { width: 72px; height: 72px; border-radius: 6px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--border); }
+
+  .member-name { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; font-weight: 900; margin-bottom: 0.25rem; letter-spacing: 0.04em; }
+  .member-role { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; }
+  .c1 .member-role { color: var(--yellow); }
+  .c2 .member-role { color: var(--magenta); }
+  .c3 .member-role { color: var(--cyan); }
+
+  .info-list { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+  .info-item { font-size: 0.74rem; color: var(--muted); display: flex; gap: 0.5rem; line-height: 1.5; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 1rem; }
+  .chip {
+    font-size: 0.62rem; letter-spacing: 0.06em;
+    padding: 0.2rem 0.55rem; border-radius: 2px;
+    border: 1px solid var(--border); color: var(--muted);
+    background: var(--surface);
+  }
+  .c1 .chip { border-color: rgba(245,230,66,0.2); color: var(--yellow); }
+  .c2 .chip { border-color: rgba(255,45,120,0.2); color: var(--magenta); }
+  .c3 .chip { border-color: rgba(0,245,255,0.2); color: var(--cyan); }
+
+  .divider { height: 1px; background: var(--border); margin: 0.9rem 0; }
+  .learn-lbl { font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
+  .learn-val { font-size: 0.76rem; color: var(--text); line-height: 1.6; margin-bottom: 1rem; }
+
+  .social-row { display: flex; gap: 0.5rem; margin-top: auto; }
+  .soc-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    font-size: 0.68rem; letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 0.35rem 0.8rem; border-radius: 2px;
+    text-decoration: none;
+    border: 1px solid var(--border); color: var(--muted);
+    background: var(--surface); font-family: 'Share Tech Mono', monospace;
+    transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+  }
+  .c1 .soc-btn:hover { border-color: var(--yellow); color: var(--yellow); box-shadow: 0 0 8px rgba(245,230,66,0.2); }
+  .c2 .soc-btn:hover { border-color: var(--magenta); color: var(--magenta); box-shadow: 0 0 8px rgba(255,45,120,0.2); }
+  .c3 .soc-btn:hover { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 8px rgba(0,245,255,0.2); }
+
+  /* PROJECTS */
+  .projects-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.1rem; }
+  .project-card { padding: 1.5rem; transition: border-color 0.2s, box-shadow 0.2s; }
+  .project-card:hover { border-color: var(--cyan); box-shadow: 0 0 20px rgba(0,245,255,0.06); }
+  .project-by { font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cyan); margin-bottom: 0.4rem; text-shadow: 0 0 6px rgba(0,245,255,0.3); }
+  .project-card h4 { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--yellow); }
+  .project-card p { font-size: 0.76rem; color: var(--muted); line-height: 1.7; }
+  .project-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.8rem; }
+  .project-tags .chip { border-color: rgba(0,245,255,0.2); color: var(--cyan); }
+
+  /* SKILLS */
+  .skills-wrap { padding: 2rem; }
+  .bars { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+  .bar-row { display: flex; align-items: center; gap: 1rem; }
+  .bar-name { font-size: 0.76rem; width: 110px; flex-shrink: 0; color: var(--text); }
+  .bar-track { flex: 1; height: 4px; background: var(--border); border-radius: 0; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--yellow); animation: grow 1s ease forwards; transform: scaleX(0); transform-origin: left; box-shadow: 0 0 6px rgba(245,230,66,0.4); }
+  @keyframes grow { to { transform: scaleX(1); } }
+  .bar-count { font-size: 0.68rem; color: var(--muted); width: 90px; text-align: right; flex-shrink: 0; }
+
+  .skill-cards { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.8rem; }
+  .sk-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1rem; text-align: center;
+    transition: border-color 0.2s;
+  }
+  .sk-card:hover { border-color: var(--yellow); }
+  .sk-icon { font-size: 1.3rem; margin-bottom: 0.4rem; }
+  .sk-name { font-size: 0.72rem; font-family: 'Orbitron', sans-serif; font-weight: 700; margin-bottom: 0.2rem; color: var(--text); }
+  .sk-count { font-size: 0.62rem; color: var(--muted); }
+
+  /* GOALS */
+  .goals-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.1rem; }
+  .goal-card { padding: 1.5rem; transition: border-color 0.2s; }
+  .goal-card:hover { border-color: var(--magenta); }
+  .goal-num {
+    font-family: 'Orbitron', sans-serif; font-size: 2rem; font-weight: 900;
+    color: rgba(255,45,120,0.1); position: absolute; top: 0.8rem; right: 1.2rem; line-height: 1;
+  }
+  .goal-card h4 { font-family: 'Orbitron', sans-serif; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.8rem; color: var(--magenta); text-shadow: 0 0 8px rgba(255,45,120,0.3); }
+  .goal-card ul { list-style: none; display: flex; flex-direction: column; gap: 0.4rem; }
+  .goal-card li { font-size: 0.76rem; color: var(--muted); padding-left: 1.1rem; position: relative; line-height: 1.5; }
+  .goal-card li::before { content: '>'; position: absolute; left: 0; color: var(--yellow); }
+
+  /* WORKING STYLE */
+  .style-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.1rem; }
+  .style-card { padding: 1.4rem; transition: border-color 0.2s, box-shadow 0.2s; }
+  .style-card:hover { border-color: var(--green); box-shadow: 0 0 16px rgba(57,255,20,0.06); }
+  .style-icon { font-size: 1.3rem; margin-bottom: 0.6rem; }
+  .style-title { font-family: 'Orbitron', sans-serif; font-size: 0.72rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--green); letter-spacing: 0.05em; }
+  .style-desc { font-size: 0.74rem; color: var(--muted); line-height: 1.7; }
+
+  /* OSS */
+  .oss-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.1rem; }
+  .oss-card { padding: 1.4rem; transition: border-color 0.2s; }
+  .oss-card:hover { border-color: var(--cyan); }
+  .oss-cat { font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cyan); margin-bottom: 0.5rem; text-shadow: 0 0 6px rgba(0,245,255,0.3); }
+  .oss-card h4 { font-family: 'Orbitron', sans-serif; font-size: 0.78rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); }
+  .oss-card p { font-size: 0.74rem; color: var(--muted); line-height: 1.7; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--yellow);
+    box-shadow: 0 -1px 20px rgba(245,230,66,0.06);
+    padding: 1.8rem 2.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    max-width: 1080px; margin: 0 auto;
+  }
+  .footer-logo { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 0.9rem; color: var(--yellow); text-shadow: 0 0 10px rgba(245,230,66,0.4); }
+  .footer-logo span { color: var(--cyan); }
+  .footer-note { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.06em; }
+
+  /* FADE IN */
+  .fade-in { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .fade-in.visible { opacity: 1; transform: none; }
+
+  /* NEON CORNER DECORATIONS */
+  .corner-deco {
+    position: relative;
+  }
+  .corner-deco::after {
+    content: '';
+    position: absolute; bottom: 0; right: 0;
+    width: 16px; height: 16px;
+    border-right: 2px solid var(--yellow);
+    border-bottom: 2px solid var(--yellow);
+    opacity: 0.4;
+  }
+
+  @media (max-width: 860px) {
+    nav { padding: 0.8rem 1.2rem; }
+    .nav-links { display: none; }
+    .container { padding: 0 1.2rem; }
+    section { padding: 3rem 0; }
+    .identity-grid, .members-grid, .skill-cards, .goals-grid, .style-grid, .oss-grid, .projects-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 0.8rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">TEAM_<span>PAC-MEN</span></div>
+  <ul class="nav-links">
+    <li><a href="#home">Home</a></li>
+    <li><a href="#identity">About</a></li>
+    <li><a href="#team">Team</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#goals">Goals</a></li>
+    <li><a href="#style">Style</a></li>
+    <li><a href="#oss">OSS</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="home">
+  <div class="hero-grid-bg"></div>
+  <div class="container">
+    <div class="hero-badge">// Summer of AI · Swecha · 2025</div>
+    <h1 class="hero-title">WE ARE<br><span class="hl">PAC-MEN.</span></h1>
+    <p class="hero-sub">Three minds. One mission. We bridge biology, systems, and design — building AI tools that actually solve problems. Where algorithms meet ambition.</p>
+    <div class="hero-tags">
+      <span class="tag">Machine Learning</span>
+      <span class="tag">Deep Learning</span>
+      <span class="tag">Computer Vision</span>
+      <span class="tag">Bioinformatics</span>
+      <span class="tag">Full Stack</span>
+      <span class="tag">Cloud</span>
+      <span class="tag">Open Source</span>
+    </div>
+    <div class="hero-stats">
+      <div><div class="stat-num">3</div><div class="stat-lbl">Members</div></div>
+      <div><div class="stat-num">∞</div><div class="stat-lbl">Ideas</div></div>
+      <div><div class="stat-num">1</div><div class="stat-lbl">Summer</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- IDENTITY -->
+<section id="identity">
+  <div class="container">
+    <div class="label fade-in">01 — Team Identity</div>
+    <h2 class="section-title fade-in">Who We Are</h2>
+    <div class="identity-grid fade-in">
+      <div class="card corner-deco">
+        <h3>// TEAM PAC-MEN</h3>
+        <p>PAC-Men stands for <strong>Pratham, Amitesh & Chaitanya</strong> — three engineers on a mission to chomp through challenges, power-up their AI skills, and clear every level the Summer of AI throws at them.</p>
+        <p>Just like the arcade legend, we move fast, learn faster, and never stop. Each member brings a unique power-up: bio-data mastery, AI vision, and full-stack cloud muscle.</p>
+        <div class="fun-fact">
+          <span>⚡</span>
+          <span><strong style="color:var(--cyan)">Fun Fact:</strong> PAC = Pratham + Amitesh + Chaitanya. We didn't just pick a cool name — we ARE the name. Also, we're equally terrified of ghost bugs in our code. 👻</span>
+        </div>
+      </div>
+      <div class="meta-stack">
+        <div class="meta-item"><div class="lbl">Team Name</div><div class="val">Team PAC-Men 🕹️</div></div>
+        <div class="meta-item"><div class="lbl">Program</div><div class="val">Summer of AI @ Swecha</div></div>
+        <div class="meta-item"><div class="lbl">University</div><div class="val">BITS Pilani</div></div>
+        <div class="meta-item"><div class="lbl">Team Size</div><div class="val">3 Interns</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <div class="container">
+    <div class="label fade-in">02 — Meet the Team</div>
+    <h2 class="section-title fade-in">The Humans</h2>
+    <div class="members-grid">
+
+      <!-- Pratham -->
+      <div class="member-card c1 fade-in">
+        <div class="avatar-wrap">
+          <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" width="72" height="72">
+            <rect width="80" height="80" fill="#1a1630"/>
+            <ellipse cx="40" cy="74" rx="26" ry="18" fill="#3a2e6e"/>
+            <rect x="14" y="56" width="52" height="20" rx="10" fill="#3a2e6e"/>
+            <rect x="30" y="62" width="20" height="10" rx="5" fill="#2e2460"/>
+            <rect x="34" y="48" width="12" height="10" rx="4" fill="#e8c49a"/>
+            <ellipse cx="40" cy="38" rx="18" ry="18" fill="#e8c49a"/>
+            <path d="M22 40 Q22 22 40 20 Q58 22 58 40" fill="none" stroke="#3a2e6e" stroke-width="6" stroke-linecap="round"/>
+            <path d="M31 37 Q34 34 37 37" fill="none" stroke="#5c3d2e" stroke-width="2" stroke-linecap="round"/>
+            <path d="M43 37 Q46 34 49 37" fill="none" stroke="#5c3d2e" stroke-width="2" stroke-linecap="round"/>
+            <text x="54" y="22" font-size="7" fill="#f5e642" font-family="monospace" font-weight="bold">z</text>
+            <text x="59" y="16" font-size="9" fill="#f5e642" font-family="monospace" font-weight="bold">z</text>
+            <text x="65" y="10" font-size="11" fill="#f5e642" font-family="monospace" font-weight="bold">Z</text>
+            <rect x="8" y="58" width="12" height="9" rx="2" fill="#5c4a1e"/>
+            <path d="M20 61 Q24 63 20 65" fill="none" stroke="#5c4a1e" stroke-width="2"/>
+            <path d="M11 57 Q12 53 13 57" fill="none" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M35 43 Q40 47 45 43" fill="none" stroke="#c0895a" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="member-name">Pratham Karma</div>
+        <div class="member-role">AI/ML Engineer · Bio-Data</div>
+        <div class="info-list">
+          <div class="info-item"><span>🏛️</span><span>BITS Pilani — Dual Degree (EEE + Bio Sci)</span></div>
+          <div class="info-item"><span>🎯</span><span>Algorithmic problem-solving, ML, Bioinformatics</span></div>
+          <div class="info-item"><span>🎮</span><span>Competitive programming, Event management</span></div>
+        </div>
+        <div class="chips">
+          <span class="chip">C/C++</span><span class="chip">DSA</span><span class="chip">NCBI</span><span class="chip">JSON/FASTA</span>
+        </div>
+        <div class="divider"></div>
+        <div class="learn-lbl">// Wants to learn</div>
+        <div class="learn-val">Applied Deep Learning · TensorFlow/PyTorch · Scalable AI deployment</div>
+        <div class="social-row">
+          <a href="https://www.linkedin.com/in/pratham-karma-46436131a" target="_blank" class="soc-btn">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            LinkedIn
+          </a>
+          <a href="https://code.swecha.org/Prathamkarma" target="_blank" class="soc-btn">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M23.955 13.587l-1.342-4.135-2.664-8.189a.455.455 0 00-.867 0L16.418 9.45H7.582L4.918 1.263a.455.455 0 00-.867 0L1.386 9.45.044 13.587a.924.924 0 00.331 1.023L12 23.054l11.625-8.443a.924.924 0 00.33-1.024"/></svg>
+            GitLab
+          </a>
+        </div>
+      </div>
+
+      <!-- Amitesh -->
+      <div class="member-card c2 fade-in">
+        <div class="avatar-wrap">
+          <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" width="72" height="72">
+            <rect width="80" height="80" fill="#0f0f1a"/>
+            <rect width="80" height="1" y="10" fill="rgba(255,45,120,0.1)"/>
+            <rect width="80" height="1" y="20" fill="rgba(255,45,120,0.1)"/>
+            <rect width="80" height="1" y="30" fill="rgba(255,45,120,0.1)"/>
+            <rect width="80" height="1" y="40" fill="rgba(255,45,120,0.1)"/>
+            <rect width="80" height="1" y="50" fill="rgba(255,45,120,0.1)"/>
+            <rect width="80" height="1" y="60" fill="rgba(255,45,120,0.1)"/>
+            <rect width="80" height="1" y="70" fill="rgba(255,45,120,0.1)"/>
+            <rect x="12" y="55" width="56" height="28" rx="10" fill="#1a0a2e"/>
+            <line x1="40" y1="55" x2="40" y2="83" stroke="#ff2d78" stroke-width="1.5" opacity="0.5"/>
+            <rect x="34" y="48" width="12" height="10" rx="4" fill="#c8a882"/>
+            <ellipse cx="40" cy="37" rx="17" ry="18" fill="#c8a882"/>
+            <path d="M23 30 Q25 14 40 13 Q55 14 57 30" fill="#111"/>
+            <path d="M25 26 Q30 10 40 9 Q50 10 55 26" fill="#222"/>
+            <rect x="24" y="33" width="32" height="9" rx="4" fill="#ff2d78" opacity="0.9"/>
+            <defs>
+              <linearGradient id="vg" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#ff2d78"/>
+                <stop offset="50%" stop-color="#fff" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#ff2d78"/>
+              </linearGradient>
+            </defs>
+            <rect x="24" y="33" width="32" height="9" rx="4" fill="url(#vg)" opacity="0.6"/>
+            <rect x="24" y="35" width="32" height="2" rx="1" fill="white" opacity="0.3"/>
+            <path d="M35 46 Q40 49 45 46" fill="none" stroke="#a07050" stroke-width="1.8" stroke-linecap="round"/>
+            <line x1="20" y1="63" x2="35" y2="63" stroke="#ff2d78" stroke-width="1" opacity="0.5"/>
+            <circle cx="35" cy="63" r="2" fill="#ff2d78" opacity="0.7"/>
+            <line x1="45" y1="63" x2="60" y2="63" stroke="#ff2d78" stroke-width="1" opacity="0.5"/>
+            <circle cx="45" cy="63" r="2" fill="#ff2d78" opacity="0.7"/>
+            <rect x="55" y="36" width="6" height="4" rx="2" fill="#ff2d78" opacity="0.8"/>
+          </svg>
+        </div>
+        <div class="member-name">Amitesh</div>
+        <div class="member-role">Aspiring AI Engineer</div>
+        <div class="info-list">
+          <div class="info-item"><span>🏛️</span><span>BITS Pilani — Engineering Program</span></div>
+          <div class="info-item"><span>🎯</span><span>AI applications, Computer Vision, automation</span></div>
+          <div class="info-item"><span>🎮</span><span>Building smart tools, self-improvement</span></div>
+        </div>
+        <div class="chips">
+          <span class="chip">C/C++</span><span class="chip">DSA</span><span class="chip">Problem Solving</span>
+        </div>
+        <div class="divider"></div>
+        <div class="learn-lbl">// Wants to learn</div>
+        <div class="learn-val">Python → ML → Computer Vision · Virtual try-on · Deep Learning</div>
+        <div class="social-row">
+          <a href="https://www.linkedin.com/in/amitesh-garg-487a59325" target="_blank" class="soc-btn">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            LinkedIn
+          </a>
+          <a href="https://code.swecha.org/Amitesh02" target="_blank" class="soc-btn">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M23.955 13.587l-1.342-4.135-2.664-8.189a.455.455 0 00-.867 0L16.418 9.45H7.582L4.918 1.263a.455.455 0 00-.867 0L1.386 9.45.044 13.587a.924.924 0 00.331 1.023L12 23.054l11.625-8.443a.924.924 0 00.33-1.024"/></svg>
+            GitLab
+          </a>
+        </div>
+      </div>
+
+      <!-- Chaitanya -->
+      <div class="member-card c3 fade-in">
+        <div class="avatar-wrap">
+          <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" width="72" height="72">
+            <rect width="80" height="80" fill="#0a1a18"/>
+            <rect x="14" y="54" width="52" height="28" rx="12" fill="#0d2e28"/>
+            <path d="M30 54 Q40 60 50 54" fill="none" stroke="#00f5ff" stroke-width="2" opacity="0.5"/>
+            <rect x="34" y="47" width="12" height="10" rx="4" fill="#d4a574"/>
+            <ellipse cx="40" cy="36" rx="17" ry="18" fill="#d4a574"/>
+            <path d="M23 28 Q22 12 40 11 Q58 12 57 28" fill="#2a1a0a"/>
+            <path d="M23 24 Q26 8 40 7 Q54 8 57 24" fill="#3d2a10"/>
+            <path d="M38 8 Q40 2 42 8" fill="#3d2a10" stroke="#3d2a10" stroke-width="2"/>
+            <path d="M22 30 Q20 20 40 18 Q60 20 58 30" fill="none" stroke="#00f5ff" stroke-width="3" stroke-linecap="round"/>
+            <rect x="18" y="28" width="8" height="12" rx="4" fill="#1a4a42"/>
+            <rect x="54" y="28" width="8" height="12" rx="4" fill="#1a4a42"/>
+            <rect x="19" y="30" width="6" height="8" rx="3" fill="#00f5ff" opacity="0.7"/>
+            <rect x="55" y="30" width="6" height="8" rx="3" fill="#00f5ff" opacity="0.7"/>
+            <ellipse cx="33" cy="36" rx="4" ry="4.5" fill="#1a1a2e"/>
+            <ellipse cx="47" cy="36" rx="4" ry="4.5" fill="#1a1a2e"/>
+            <circle cx="34" cy="35" r="1.5" fill="white"/>
+            <circle cx="48" cy="35" r="1.5" fill="white"/>
+            <path d="M36 44 Q40 47 46 43" fill="none" stroke="#a07848" stroke-width="2" stroke-linecap="round"/>
+            <rect x="28" y="62" width="24" height="12" rx="6" fill="#0a3a32"/>
+            <circle cx="36" cy="68" r="2" fill="#00f5ff" opacity="0.6"/>
+            <circle cx="44" cy="68" r="2" fill="#ff2d78" opacity="0.6"/>
+            <rect x="38" y="65" width="4" height="1.5" rx="1" fill="#aaa" opacity="0.5"/>
+            <rect x="39.25" y="63.75" width="1.5" height="4" rx="1" fill="#aaa" opacity="0.5"/>
+          </svg>
+        </div>
+        <div class="member-name">Chaitanya Chalith</div>
+        <div class="member-role">Full Stack · Cloud · AI</div>
+        <div class="info-list">
+          <div class="info-item"><span>🏛️</span><span>BITS Pilani — Software Engineering Track</span></div>
+          <div class="info-item"><span>🎯</span><span>Software development, Cloud, AI products</span></div>
+          <div class="info-item"><span>🎮</span><span>Building apps, exploring tech, open source</span></div>
+        </div>
+        <div class="chips">
+          <span class="chip">Python</span><span class="chip">HTML/CSS/JS</span><span class="chip">Git</span><span class="chip">C/C++</span>
+        </div>
+        <div class="divider"></div>
+        <div class="learn-lbl">// Wants to learn</div>
+        <div class="learn-val">Cloud Computing · DevOps · Full Stack · ML</div>
+        <div class="social-row">
+          <a href="https://www.linkedin.com/in/chaitanya-chalith-8b2241401" target="_blank" class="soc-btn">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            LinkedIn
+          </a>
+          <a href="https://code.swecha.org/chaitanyachalith" target="_blank" class="soc-btn">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M23.955 13.587l-1.342-4.135-2.664-8.189a.455.455 0 00-.867 0L16.418 9.45H7.582L4.918 1.263a.455.455 0 00-.867 0L1.386 9.45.044 13.587a.924.924 0 00.331 1.023L12 23.054l11.625-8.443a.924.924 0 00.33-1.024"/></svg>
+            GitLab
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="container">
+    <div class="label fade-in">03 — Projects</div>
+    <h2 class="section-title fade-in">What We've Built</h2>
+    <div class="projects-grid fade-in">
+      <div class="project-card">
+        <div class="project-by">// Pratham Karma</div>
+        <h4>AlphavirusDB 🧬</h4>
+        <p>Automated tool to scrape, filter, and process genomic data from NCBI databases. Intelligent filtering drops unreliable records and outputs clean data in JSON, FASTA, and Excel — eliminating manual data collection entirely.</p>
+        <div class="project-tags">
+          <span class="chip">Python</span><span class="chip">NCBI</span><span class="chip">JSON</span><span class="chip">FASTA</span><span class="chip">Bioinformatics</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-by">// Pratham Karma</div>
+        <h4>Internship Prioritization Engine 📊</h4>
+        <p>Built a data matrix to evaluate and rank over 400 corporate projects based on tech stack, domain, and location — optimizing career placement strategies for students.</p>
+        <div class="project-tags">
+          <span class="chip">Data Analysis</span><span class="chip">Excel</span><span class="chip">Automation</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-by">// Chaitanya Chalith</div>
+        <h4>EV Charging Aggregator App 🔋</h4>
+        <p>Concept and early-stage app to aggregate EV charging station data and help users find, compare, and navigate to charging points efficiently.</p>
+        <div class="project-tags">
+          <span class="chip">App Dev</span><span class="chip">Python</span><span class="chip">EV Tech</span>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-by">// Chaitanya Chalith</div>
+        <h4>Web Dev Practice Projects 🌐</h4>
+        <p>A collection of web development practice projects exploring HTML, CSS, JavaScript and Python mini-projects to build frontend and scripting fundamentals.</p>
+        <div class="project-tags">
+          <span class="chip">HTML/CSS</span><span class="chip">JavaScript</span><span class="chip">Python</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="container">
+    <div class="label fade-in">04 — Skills Map</div>
+    <h2 class="section-title fade-in">Our Capabilities</h2>
+    <div class="skills-wrap fade-in">
+      <div class="bars">
+        <div class="bar-row"><span class="bar-name">C / C++</span><div class="bar-track"><div class="bar-fill" style="width:100%;animation-delay:0.1s"></div></div><span class="bar-count">3 / 3 members</span></div>
+        <div class="bar-row"><span class="bar-name">Python</span><div class="bar-track"><div class="bar-fill" style="width:66%;animation-delay:0.2s;background:var(--cyan);box-shadow:0 0 6px rgba(0,245,255,0.4)"></div></div><span class="bar-count">2 / 3 members</span></div>
+        <div class="bar-row"><span class="bar-name">Web Dev</span><div class="bar-track"><div class="bar-fill" style="width:33%;animation-delay:0.3s;background:var(--magenta);box-shadow:0 0 6px rgba(255,45,120,0.4)"></div></div><span class="bar-count">1 / 3 members</span></div>
+        <div class="bar-row"><span class="bar-name">DSA / Algo</span><div class="bar-track"><div class="bar-fill" style="width:100%;animation-delay:0.4s"></div></div><span class="bar-count">3 / 3 members</span></div>
+        <div class="bar-row"><span class="bar-name">Git / GitHub</span><div class="bar-track"><div class="bar-fill" style="width:66%;animation-delay:0.5s;background:var(--cyan);box-shadow:0 0 6px rgba(0,245,255,0.4)"></div></div><span class="bar-count">2 / 3 members</span></div>
+        <div class="bar-row"><span class="bar-name">Data Science</span><div class="bar-track"><div class="bar-fill" style="width:33%;animation-delay:0.6s;background:var(--magenta);box-shadow:0 0 6px rgba(255,45,120,0.4)"></div></div><span class="bar-count">1 / 3 members</span></div>
+      </div>
+      <div class="skill-cards">
+        <div class="sk-card"><div class="sk-icon">⚙️</div><div class="sk-name">Backend</div><div class="sk-count">3 members</div></div>
+        <div class="sk-card"><div class="sk-icon">🌐</div><div class="sk-name">Frontend</div><div class="sk-count">1 member</div></div>
+        <div class="sk-card"><div class="sk-icon">🧠</div><div class="sk-name">AI / ML</div><div class="sk-count">3 (learning)</div></div>
+        <div class="sk-card"><div class="sk-icon">🔬</div><div class="sk-name">Data / Bio</div><div class="sk-count">1 member</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GOALS -->
+<section id="goals">
+  <div class="container">
+    <div class="label fade-in">05 — Learning Goals</div>
+    <h2 class="section-title fade-in">What We Want to Learn</h2>
+    <div class="goals-grid">
+      <div class="goal-card fade-in">
+        <div class="goal-num">01</div>
+        <h4>Technologies to Explore</h4>
+        <ul>
+          <li>TensorFlow & PyTorch for deep learning</li>
+          <li>Cloud platforms (AWS / GCP / Azure)</li>
+          <li>Full Stack with React + FastAPI</li>
+          <li>Docker, CI/CD, and DevOps basics</li>
+          <li>Computer Vision pipelines</li>
+        </ul>
+      </div>
+      <div class="goal-card fade-in">
+        <div class="goal-num">02</div>
+        <h4>Problems That Excite Us</h4>
+        <ul>
+          <li>Automating genomic research workflows</li>
+          <li>AI-powered virtual try-on systems</li>
+          <li>EV infrastructure optimization apps</li>
+          <li>Real-time smart automation tools</li>
+          <li>Scalable, impactful open-source AI</li>
+        </ul>
+      </div>
+      <div class="goal-card fade-in">
+        <div class="goal-num">03</div>
+        <h4>What We Hope to Build</h4>
+        <ul>
+          <li>At least one end-to-end deployed AI model</li>
+          <li>A collaborative open-source contribution</li>
+          <li>Personal portfolio projects with real users</li>
+          <li>Team project with real-world impact</li>
+        </ul>
+      </div>
+      <div class="goal-card fade-in">
+        <div class="goal-num">04</div>
+        <h4>Soft Skills & Growth</h4>
+        <ul>
+          <li>Cross-domain collaboration</li>
+          <li>Technical communication & documentation</li>
+          <li>Code reviews and peer learning</li>
+          <li>Consistent daily discipline in learning</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WORKING STYLE -->
+<section id="style">
+  <div class="container">
+    <div class="label fade-in">06 — Working Style</div>
+    <h2 class="section-title fade-in">How We Work</h2>
+    <div class="style-grid fade-in">
+      <div class="style-card"><div class="style-icon">🌅</div><div class="style-title">Daily Check-ins</div><div class="style-desc">Quick async standups every morning — what we did, what we plan, any blockers. No meeting longer than 15 min.</div></div>
+      <div class="style-card"><div class="style-icon">🖥️</div><div class="style-title">Pair Programming</div><div class="style-desc">For tough problems, two heads are better than one. We pair up to push through bugs and design decisions.</div></div>
+      <div class="style-card"><div class="style-icon">🔍</div><div class="style-title">Code Reviews</div><div class="style-desc">Every PR gets at least one review. We treat reviews as learning moments, not gatekeeping. Constructive, always.</div></div>
+      <div class="style-card"><div class="style-icon">📺</div><div class="style-title">Weekly Demos</div><div class="style-desc">Every Friday, we demo what we built — even if it's messy. Progress over perfection.</div></div>
+      <div class="style-card"><div class="style-icon">📚</div><div class="style-title">Shared Learning</div><div class="style-desc">Interesting article? New framework? We drop it in our group thread. Knowledge shared is knowledge doubled.</div></div>
+      <div class="style-card"><div class="style-icon">🎯</div><div class="style-title">Sprint Goals</div><div class="style-desc">Two-week mini-sprints with defined goals. Small, achievable milestones to keep momentum and celebrate wins.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- OPEN SOURCE -->
+<section id="oss">
+  <div class="container">
+    <div class="label fade-in">07 — Open Source</div>
+    <h2 class="section-title fade-in">Giving Back</h2>
+    <div class="oss-grid fade-in">
+      <div class="oss-card"><div class="oss-cat">// Projects We Love</div><h4>Hugging Face 🤗</h4><p>The go-to hub for pretrained ML models. We want to explore, use, and contribute fine-tuned models for domain-specific tasks.</p></div>
+      <div class="oss-card"><div class="oss-cat">// Communities</div><h4>Swecha & FOSS</h4><p>Swecha's open-source mission resonates with us. We want to contribute to Telugu language AI tools and regional NLP projects.</p></div>
+      <div class="oss-card"><div class="oss-cat">// Projects We Love</div><h4>scikit-learn</h4><p>The foundation of classical ML in Python. Bug fixes and documentation improvements are a perfect first open-source step.</p></div>
+      <div class="oss-card"><div class="oss-cat">// Problems to Solve</div><h4>Bioinformatics Tooling</h4><p>Pratham wants to open-source tools that make NCBI data pipelines accessible to all researchers.</p></div>
+      <div class="oss-card"><div class="oss-cat">// Problems to Solve</div><h4>Accessible AI Apps</h4><p>Amitesh wants to build open tools for visual AI that work for everyday users — no PhD required.</p></div>
+      <div class="oss-card"><div class="oss-cat">// Communities</div><h4>GitHub Open Source</h4><p>Chaitanya's goal: make a meaningful PR to a project with 1k+ stars in web dev or DevOps.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">TEAM_<span>PAC-MEN</span></div>
+  <div class="footer-note">// Summer of AI · Swecha · BITS Pilani · 2025</div>
+  <div class="footer-note">⚡ Built with code & caffeine</div>
+</footer>
+
+<script>
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+  window.addEventListener('load', () => {
+    document.querySelectorAll('.fade-in').forEach(el => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight) el.classList.add('visible');
+    });
+  });
+</script>
+</body>
+</html>
